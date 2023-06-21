@@ -1,0 +1,303 @@
+ <?php
+
+	require('../config.php');
+	require(DBAPI);
+
+	$customers = null;
+	$customer = null;
+
+	/**
+	 *  Listagem de Clientes
+	 */
+	function index() {
+		global $customers;
+		$customers = find_all('customers');
+	}
+
+	/**
+	 * MODIFICADO: Listagem de Motos
+	 */
+	function indexMotos() {
+		global $motos;
+		$motos = find_all('motos');
+	}
+
+	/**
+	 * Cadastro de Clientes
+	 */
+	function add() {
+
+		if (!empty($_POST['customer'])) {
+			$today = new DateTime("now");
+			// date_create('now', new DateTimeZone('America/Sao_Paulo'));
+	
+			$customer = $_POST['customer'];
+			$customer['modified'] = $customer['created'] = $today->format("Y-m-d H:i:s");
+		
+			save('customers', $customer);
+			header('location: index.php');
+		}
+	}
+
+	/**
+	 * MODIFICADO: Cadastro de Motos
+	 */
+
+	function addMoto() {
+
+		if (!empty($_POST['moto'])) {
+			$target_dir = "imagens/";
+			$target_file = $target_dir . basename($_FILES["imagemMoto"]["name"]);
+			$uploadOk = 1;
+			$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+										
+			// Check if image file is a actual image or fake image
+			if (isset($_POST["submit"])) {
+				$check = getimagesize($_FILES["imagemMoto"]["tmp_name"]);
+				if ($check !== false) {
+					//echo "O arquivo é uma imagem - " . $check["mime"] . ".<br>";
+					$uploadOk = 1;
+				} else {
+					echo "O arquivo não é uma imagem.<br>";
+					$uploadOk = 0;
+				}
+			}
+
+			// Check if file already exists
+			if (file_exists($target_file)) {
+				echo "O arquivo já existe.<br>";
+				$uploadOk = 0;
+			}
+
+			// Check file size
+			if ($_FILES["imagemMoto"]["size"] > 5000000) {
+				echo "O arquivo é muito grande.<br>";
+				$uploadOk = 0;
+			}
+
+			// Allow certain file formats
+			if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
+				&& $imageFileType != "gif" ) {
+				echo "Somente arquivos JPG, JPEG, PNG & GIF são suportados.<br>";
+				$uploadOk = 0;
+			}
+
+			// Check if $uploadOk is set to 0 by an error
+			if ($uploadOk == 0) {
+				echo "Desculpe, o arquivo não pode ser enviado.<br>";
+			// if everything is ok, try to upload file
+			} else {
+				if (move_uploaded_file($_FILES["imagemMoto"]["tmp_name"], $target_file)) {
+					$today = new DateTime("now");
+
+					$moto = $_POST['moto'];
+					$moto['imagem'] = $_FILES['imagemMoto']['name'];
+					$moto['modificado'] = $today->format("Y-m-d H:i:s");
+				
+					save('motos', $moto);
+					header('location: index.php');
+				} else {
+					echo "Desculpe, o arquivo não pode ser enviado.<br>";
+				}
+			}
+		}
+	}
+	
+	function edit() {
+
+		$now = new DateTime("now");
+		// date_create('now', new DateTimeZone('America/Sao_Paulo'));
+	
+		if (isset($_GET['id'])) {
+		
+			$id = $_GET['id'];
+		
+			if (isset($_POST['customer'])) {
+		
+				$customer = $_POST['customer'];
+				$customer['modified'] = $now->format("Y-m-d H:i:s");
+			
+				update("customers", $id, $customer);
+				header("location: index.php");
+			} else {
+
+				global $customer;
+				$customer = find("customers", $id);
+			} 
+		} else {
+			header("location: index.php");
+		}
+	}
+
+	/**
+	 * MODIFICADO: Edita Moto
+	 */
+	function editMoto() {
+		$now = new DateTime("now");
+		// date_create('now', new DateTimeZone('America/Sao_Paulo'));
+		
+		if (isset($_GET['id'])) {
+			$id = $_GET['id'];
+
+			// POST
+			if (isset($_POST['moto'])) {
+
+				// edit with image change
+				if (!empty($_FILES['imagemMoto'])) {
+					$target_dir = "imagens/";
+					$target_file = $target_dir . basename($_FILES["imagemMoto"]["name"]);
+					$uploadOk = 1;
+					$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+												
+					// Check if image file is a actual image or fake image
+					if (isset($_POST["submit"])) {
+						$check = getimagesize($_FILES["imagemMoto"]["tmp_name"]);
+						if ($check !== false) {
+							//echo "O arquivo é uma imagem - " . $check["mime"] . ".<br>";
+							$uploadOk = 1;
+						} else {
+							echo "O arquivo não é uma imagem.<br>";
+							$uploadOk = 0;
+						}
+					}
+		
+					// Check if file already exists
+					if (file_exists($target_file)) {
+						echo "O arquivo já existe.<br>";
+						$uploadOk = 0;
+					}
+		
+					// Check file size
+					if ($_FILES["imagemMoto"]["size"] > 5000000) {
+						echo "O arquivo é muito grande.<br>";
+						$uploadOk = 0;
+					}
+		
+					// Allow certain file formats
+					if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
+						&& $imageFileType != "gif" ) {
+						echo "Somente arquivos JPG, JPEG, PNG & GIF são suportados.<br>";
+						$uploadOk = 0;
+					}
+		
+					// Check if $uploadOk is set to 0 by an error
+					if ($uploadOk == 0) {
+						echo "Desculpe, o arquivo não pode ser enviado.<br>";
+					// if everything is ok, try to upload file
+					} else {
+						if (move_uploaded_file($_FILES["imagemMoto"]["tmp_name"], $target_file) && unlink($target_dir . find("motos", $id)['imagem'])) {
+							// ACTUALLY EDIT
+							$moto = $_POST['moto'];
+							$moto['imagem'] = $_FILES["imagemMoto"]["name"];
+							$moto['modificado'] = $now->format("Y-m-d H:i:s");
+						
+							update("motos", $id, $moto);
+							header("location: index.php");
+						} else {
+							echo "Desculpe, o arquivo não pode ser enviado.<br>";
+						}
+					}
+				}
+				// edit without image change
+				else {
+					// ACTUALLY EDIT
+					$moto = $_POST['moto'];
+					$moto['modificado'] = $now->format("Y-m-d H:i:s");
+				
+					update("motos", $id, $moto);
+					header("location: index.php");
+				}
+			}
+			// GET
+			global $moto;
+			$moto = find("motos", $id);
+		}
+		else {
+			header("location: index.php");
+		}
+	}
+
+	function update($table = null, $id = 0, $data = null) {
+
+		$database = open_database();
+
+		$items = null;
+
+		foreach ($data as $key => $value) {
+			$items .= trim($key, "'") . "='$value',";
+		}
+
+		// remove a ultima virgula
+		$items = rtrim($items, ',');
+
+		$sql  = "UPDATE " . $table;
+		$sql .= " SET $items";
+		$sql .= " WHERE id=" . $id . ";";
+
+		try {
+			$database->query($sql);
+
+			$_SESSION['message'] = 'Registro atualizado com sucesso.';
+			$_SESSION['sql'] = $sql;
+			$_SESSION['type'] = 'success';
+
+		} catch (Exception $e) { 
+
+			$_SESSION['message'] = 'Nao foi possivel realizar a operacao.';
+			$_SESSION['type'] = 'danger';
+		} 
+
+		close_database($database);
+	}
+
+	/**
+	 *  Visualização de um Cliente
+	*/
+	function view($id = null) {
+		global $customer;
+		$customer = find("customers", $id);
+	}
+
+	/**
+	 * MODIFICADO: Visualização de uma Moto
+	 */
+	function viewMoto($id = null) {
+		global $moto;
+		$moto = find("motos", $id);
+	}
+
+	/**
+	 *  Exclusão de um Cliente
+	 */
+	function delete($id = null) {
+
+		global $customer;
+		$customer = remove("customers", $id);
+	
+		header("location: index.php");
+	}
+
+	/**
+	 *  MODIFICADO: Exclusão de uma Moto
+	 */
+	function deleteMoto($id = null) {
+
+		global $moto;
+		global $motos;
+		
+		$motos = find("motos", $id);
+		
+		$dirImg = "imagens/" . $motos['imagem'];
+		$nomeImg = $motos['imagem'];
+		
+		if (file_exists($dirImg) && $dirImg != "semImagem.png") {
+			unlink($dirImg);
+			//echo "O arquivo foi deletado";
+		}
+		
+		$moto = remove("motos", $id);
+	
+		header("location: index.php");
+	}
+
+?>
