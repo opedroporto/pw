@@ -15,12 +15,12 @@
 			<?php if ($_SERVER['REQUEST_METHOD'] === 'GET') : ?>
 				<div class="btn-group" role="group" aria-label="Basic example">
 					<a class="btn btn-danger" style="border: 1px solid #a83236;" target="_blank" href="<?php echo BASEURL; ?>inc/pdf.php?category=<?php echo "brinquedos";?>"><i class="fa-solid fa-file-pdf"></i> Ver PDF</a>
-					<a class="btn btn-danger" style="border: 1px solid #a83236;" target="_blank" href="<?php echo BASEURL; ?>inc/pdf.php?category=<?php echo "brinquedos";?>&d=true"><i class="fa-solid fa-file-pdf"></i> Baixar PDF</a>
+					<a class="btn btn-danger" style="border: 1px solid #a83236;" target="_blank" href="<?php echo BASEURL; ?>inc/pdf.php?category=<?php echo "brinquedos";?>&d=true"><i class="fa-solid fa-arrow-down"></i> Baixar PDF</a>
 				</div>
 			<?php elseif ($_SERVER['REQUEST_METHOD'] === 'POST') : ?>
 				<div class="btn-group" role="group" aria-label="Basic example">
 					<a class="btn btn-danger" style="border: 1px solid #a83236;" target="_blank" href="<?php echo BASEURL; ?>inc/pdf.php?category=<?php echo "brinquedos";?>&filter=<?php echo $_POST["brinquedos"];?>&filtertype=<?php echo $_POST["filtertype"];?>"><i class="fa-solid fa-file-pdf"></i> Ver PDF</a>
-					<a class="btn btn-danger" style="border: 1px solid #a83236;" target="_blank" href="<?php echo BASEURL; ?>inc/pdf.php?category=<?php echo "brinquedos";?>&filter=<?php echo $_POST["brinquedos"];?>&filtertype=<?php echo $_POST["filtertype"];?>&d=true"><i class="fa-solid fa-file-pdf"></i> Baixar PDF</a>
+					<a class="btn btn-danger" style="border: 1px solid #a83236;" target="_blank" href="<?php echo BASEURL; ?>inc/pdf.php?category=<?php echo "brinquedos";?>&filter=<?php echo $_POST["brinquedos"];?>&filtertype=<?php echo $_POST["filtertype"];?>&d=true"><i class="fa-solid fa-arrow-down"></i>Baixar PDF</a>
 				</div>
 			<?php endif; ?>
 		</div>
