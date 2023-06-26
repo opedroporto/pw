@@ -663,10 +663,12 @@ $("form").submit(function(event) {
 */
 
 $(document).ready(function() {
-    $('.form-check-input').removeAttr("disabled");
-    $('.form-check-input').click(function() {
-        $('.form-check-input').not(this).prop('checked', false);
+    //$(':input').val("").trigger("change");
+
+    $('.form-check-input:not("#imagemCheckbox"):not("#passwordCheckbox")').removeAttr("disabled");
+    $('.form-check-input:not("#imagemCheckbox"):not("#passwordCheckbox")').click(function() {
+        $('.form-check-input:not("#imagemCheckbox"):not("#passwordCheckbox")').not(this).prop('checked', false);
         
-        if ($('.form-check-input:checked').length == 0) return false;
+        if ($('.form-check-input:checked:not("#imagemCheckbox"):not("#passwordCheckbox")').length == 0) return false;
     });
 });

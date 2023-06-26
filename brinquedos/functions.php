@@ -32,12 +32,21 @@
 	function addBrinquedos() {
 		if (!empty($_POST['brinquedo'])) {
 			$target_dir = "imagens/";
-			$target_file = $target_dir . basename($_FILES["imagemBrinquedo"]["name"]);
+			$filename = generateRandomString();
+			$path = $_FILES['imagemBrinquedo']['name'];
+			$ext = pathinfo($path, PATHINFO_EXTENSION);
+			$imgName = $filename . "." . $ext;
+			//$target_file = $target_dir . basename($_FILES["imagemBrinquedo"]["name"]);
+			$target_file = $target_dir . $imgName;
+
 			$uploadOk = 1;
 			$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+			var_dump($target_file);
+			var_dump($imageFileType);
 			// Check if image file is a actual image or fake image
 			if (isset($_POST["submit"])) {
 				$check = getimagesize($_FILES["imagemBrinquedo"]["tmp_name"]);
+				var_dump($_FILES["imagemBrinquedo"]["tmp_name"]);
 				if ($check !== false) {
 					//echo "O arquivo é uma imagem - " . $check["mime"] . ".<br>";
 					$uploadOk = 1;
@@ -75,7 +84,7 @@
 					$today = new DateTime("now");
 
 					$brinquedo = $_POST['brinquedo'];
-					$brinquedo['foto'] = $_FILES['imagemBrinquedo']['name'];
+					$brinquedo['foto'] = $imgName;
 				
 					save('brinquedos', $brinquedo);
 					header('location: index.php');
@@ -101,9 +110,14 @@
 
 				// edit with image change
 				if ($_FILES['imagemBrinquedo']['name'] != "") {
-					echo $_FILES['imagemBrinquedo']['name'];
 					$target_dir = "imagens/";
-					$target_file = $target_dir . basename($_FILES["imagemBrinquedo"]["name"]);
+					$filename = generateRandomString();
+					$path = $_FILES['imagemBrinquedo']['name'];
+					$ext = pathinfo($path, PATHINFO_EXTENSION);
+					$imgName = $filename . "." . $ext;
+					//$target_file = $target_dir . basename($_FILES["imagemBrinquedo"]["name"]);
+					$target_file = $target_dir . $imgName;
+
 					$uploadOk = 1;
 					$imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 												
@@ -146,7 +160,7 @@
 						if (move_uploaded_file($_FILES["imagemBrinquedo"]["tmp_name"], $target_file) && unlink($target_dir . find("brinquedos", $id)['foto'])) {
 							// ACTUALLY EDIT
 							$brinquedo = $_POST['brinquedo'];
-							$brinquedo['foto'] = $_FILES["imagemBrinquedo"]["name"];
+							$brinquedo['foto'] = $imgName;
 						
 							update("brinquedos", $id, $brinquedo);
 							header("location: index.php");

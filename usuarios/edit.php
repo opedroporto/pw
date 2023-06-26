@@ -53,6 +53,7 @@
                         <input id="imagemCheckbox" name="imagemCheckbox" class="form-check-input" type="checkbox" value="">
                         <label class="form-check-label" for="imagemCheckbox">
                             Modificar imagem
+                            <button id="procurarImagem" class="btn btn-secondary m-2" type="button" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Procurar imagem de <?php echo $usuario['nome']; ?></button>
                         </label>
                     </div>
                     <input type="file" id="imagemUsuario" name="imagemUsuario" class="form-control" accept="image/png, image/jpg, image/jpeg, image/gif" disabled>
@@ -94,46 +95,109 @@
 
 <script>
     $(document).ready(() => {
-      $('#imagemUsuario').change(function () {
-        const file = this.files[0];
-        if (file && (file['name'].endsWith(".png") || file['name'].endsWith(".jpg") || file['name'].endsWith(".jpeg") || file['name'].endsWith(".gif"))){
-            let reader = new FileReader();
-            reader.onload = function(event){
-                $('#imgPreview').attr('src', event.target.result);
-            }
-            reader.readAsDataURL(file);
-        } else {
-            $('#imgPreview').attr('src', "imagens/semImagem.png");
-        }
-      });
+        imageVal = $("#nomeUsuario").val();
+        $('#nomeUsuario').on("input", function() {
+            imageVal = $("#nomeUsuario").val();
+            $("#procurarImagem").html('<i class="fa-solid fa-wand-magic-sparkles"></i>' + " Procurar imagem de " + imageVal);
+        })
+        $("#procurarImagem").on("click", async function() {
+            // Default options are marked with *
+            const response = await fetch("/search.php", {
+                method: "POST", // *GET, POST, PUT, DELETE, etc.
+                mode: "cors", // no-cors, *cors, same-origin
+                cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: "same-origin", // include, *same-origin, omit
+                headers: {
+                    "Content-Type": "application/json",
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                redirect: "follow", // manual, *follow, error
+                referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                body: JSON.stringify({
+                    "imageVal": imageVal
+                }), // body data type must match "Content-Type" header
+            });
 
-      $("#passwordCheckbox").change(function() {
-        if(this.checked) {
-            /* modifica */
-            $("#senhaUsuario").prop("disabled", false);
-            $("#senhaUsuario").addClass("is-invalid");
-        } else {
-            /* NÃO modifica */
-            $("#senhaUsuario").val("");
-            $("#senhaUsuario").prop("disabled", true);
-            $("#senhaUsuario").removeClass("is-invalid");
-            $("#senhaUsuario").removeClass("is-valid");
-        }
-    });
-      $("#imagemCheckbox").change(function() {
-        if(this.checked) {
-            /* modifica */
-            $('#imgPreview').attr('src', "imagens/semImagem.png");
-            $("#imagemUsuario").prop("disabled", false);
-            $("#imagemUsuario").addClass("is-valid");
-        } else {
-            /* NÃO modifica */
-            $('#imgPreview').attr('src', "imagens/<?php echo $usuario['foto']; ?>");
-            $("#imagemUsuario").val("");
-            $("#imagemUsuario").prop("disabled", true);
-            $("#imagemUsuario").removeClass("is-invalid");
-            $("#imagemUsuario").removeClass("is-valid");
-        }
-    });
+            let images = await response.json();
+            for (var i = 0; i < images.length; i++) {
+                try {
+                    let imageUrl = images[i]['contentUrl']
+                    let index = imageUrl.lastIndexOf("/") + 1;
+                    //let filename = imageUrl.substr(index);
+                    
+                    let response = await fetch(imageUrl).then();
+                    let blob = await response.blob()
+                    let mimetype = response.headers.get("Content-Type")
+
+                    let filename = imageVal + "." + mimetype.substr(mimetype.lastIndexOf("/") + 1);
+
+                    var file = new File([blob], filename, {type: "image/" + filename.split('.').pop()});
+
+                    if (file['type'] != "image/webp") {
+    
+                        // Create a new DataTransfer object and assign the file to it
+                        var dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+    
+                        // Assign the DataTransfer object to the input element
+                        var inputFile = document.getElementById('imagemUsuario');
+                        inputFile.files = dataTransfer.files;
+
+                        
+                        $('#imgPreview').attr('src', imageUrl);
+                        
+                        $("#imagemUsuario").removeClass("is-invalid");
+                        $("#imagemUsuario").addClass("is-valid");
+                        break;
+                    }
+                } catch {}
+            }
+
+
+        })
+
+        $('#imagemUsuario').change(function () {
+            const file = this.files[0];
+            if (file && (file['name'].endsWith(".png") || file['name'].endsWith(".jpg") || file['name'].endsWith(".jpeg") || file['name'].endsWith(".gif"))){
+                let reader = new FileReader();
+                reader.onload = function(event){
+                    $('#imgPreview').attr('src', event.target.result);
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#imgPreview').attr('src', "imagens/semImagem.png");
+            }
+        });
+
+        $("#passwordCheckbox").change(function() {
+            if(this.checked) {
+                /* modifica */
+                $("#senhaUsuario").prop("disabled", false);
+                $("#senhaUsuario").addClass("is-invalid");
+            } else {
+                /* NÃO modifica */
+                $("#senhaUsuario").val("");
+                $("#senhaUsuario").prop("disabled", true);
+                $("#senhaUsuario").removeClass("is-invalid");
+                $("#senhaUsuario").removeClass("is-valid");
+            }
+        });
+        $("#imagemCheckbox").change(function() {
+            if(this.checked) {
+                /* modifica */
+                $('#imgPreview').attr('src', "imagens/semImagem.png");
+                $("#imagemUsuario").prop("disabled", false);
+                $("#imagemUsuario").addClass("is-valid");
+                $("#procurarImagem").prop("disabled", false);
+            } else {
+                /* NÃO modifica */
+                $('#imgPreview').attr('src', "imagens/<?php echo $usuario['foto']; ?>");
+                $("#imagemUsuario").val("");
+                $("#imagemUsuario").prop("disabled", true);
+                $("#imagemUsuario").removeClass("is-invalid");
+                $("#imagemUsuario").removeClass("is-valid");
+                $("#procurarImagem").prop("disabled", true);
+            }
+        });
     });
 </script>
